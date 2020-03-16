@@ -1,0 +1,18 @@
+language: javascript
+
+install:
+  - yarn
+
+script:
+  - mkdir deploy
+  - mv website/* deploy
+  - touch deploy/.nojekyll
+
+deploy:
+  provider: pages
+  local-dir: deploy
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: false
+  on:
+    branch: master
