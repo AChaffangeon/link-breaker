@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+<!--no zoom-->
+
+
+    <title id="title">Link breaker</title>
+    <meta name="description" content="Compute breaking time of chained molecules" />
+    <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body>
+    <div id="options">
+        <div>
+            <label for="nb-of-link">Number of links</label>
+            <input type="number" value="10" id="nb-of-link">
+        </div>
+        <div>
+            <label for="min-nb-breakable">Min number of breakable links</label>
+            <input type="number" value="2" id="min-nb-breakable">
+        </div>
+        
+        <div>
+            <label for="max-nb-breakable">Max number of breakable links</label>
+            <input type="number" value="7" id="max-nb-breakable">
+        </div>
+
+        <div>
+            <label for="time-to-break-outside">Time to break outside links</label>
+            <input type="number" value="1" id="time-to-break-outside">
+        </div>
+
+        <div>
+            <label for="time-to-break-inside">Time to break inside links</label>
+            <input type="number" value="100" id="time-to-break-inside">
+        </div>
+    </div>
+    <button id="start-button">Start</button>
+    <button id="download-button">Download</button>
+    <div id="results"></div>
+</body>
+<script type="text/javascript" src="./js/all.js"></script>
+</html>
