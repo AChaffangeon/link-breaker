@@ -126,10 +126,10 @@ function start() {
 }
 
 function logResults() {
-    let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Mean time</th><th>Mean nb singleton</th></tr>"
+    let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Mean time</th><th>Mean nb singleton</th><th>Mean Time/ Mean nb singleton</th></tr>"
     let detailTables = "";
     loggerInfo.forEach((v, k, m) => {
-        meanTable += `<tr><td>${k}</td><td>${v.meanTime.toFixed(2)}</td><td>${v.meanNbSingle.toFixed(2)}</td></tr>`;
+        meanTable += `<tr><td>${k}</td><td>${v.meanTime.toFixed(3)}</td><td>${v.meanNbSingle.toFixed(3)}</td><td>${(v.meanTime.toFixed(3) / v.meanNbSingle.toFixed(3)).toFixed(3)}</td></tr>`;
         detailTables += logDetailTable(k, v.details);
     });
     meanTable += "</table>";
