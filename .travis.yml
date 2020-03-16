@@ -1,8 +1,5 @@
 jlanguage: node_js
 
-install:
-  - yarn
-
 script:
   - mkdir deploy
   - mv website/* deploy
