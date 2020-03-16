@@ -1,4 +1,4 @@
-language: javascript
+jlanguage: node_js
 
 install:
   - yarn
