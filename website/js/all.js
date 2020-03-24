@@ -1,11 +1,11 @@
 // Options
-let LENGTH_LIGNIM_POLY;
+let LENGTH_LIGNIN_POLY;
 let MIN_BREAKABLE_LINK;
 let MAX_BREAKABLE_LINK;
 
 let TEMPERATURE = 453;
-let LIGNIM_MASS = 0.1;
-let SYRINGAL_FRACTION = 0.75;
+let LIGNIN_MASS = 0.1;
+let SYRINGOL_FRACTION = 0.75;
 let SALIENT_VOLUME = 20;
 
 let SECURITY = 1000;
@@ -25,7 +25,7 @@ let EaMiddle = 30000;
 let EaEnd = 20000;
 let e = Math.exp(1);
 
-// Optimisation to compute time
+// Optimisation to compute collisionNb
 let linkToAnalysis;
 
 // Results of experiment
@@ -33,34 +33,34 @@ let loggerInfo;
 
 function last(array) {return array[array.length - 1];}
 
-function mLignim(links) {
-    return (SYRINGAL_FRACTION * mS + (1 - SYRINGAL_FRACTION) * mG) * links.length;
+function mLignin() {
+    return (SYRINGOL_FRACTION * mS + (1 - SYRINGOL_FRACTION) * mG) * LENGTH_LIGNIN_POLY;
 }
 
-function lignimConcentration(links) {
-    return (LIGNIM_MASS * Na) / (mLignim(links) * SALIENT_VOLUME)
+function ligninConcentration() {
+    return (LIGNIN_MASS * Na) / (mLignin() * SALIENT_VOLUME)
 }
 
 function zMiddle(links) {
     let bMiddle = 0; 
     links.slice(1, -1).forEach((v) => bMiddle += v);
-    bMiddle *= lignimConcentration(links);
+    bMiddle *= ligninConcentration();
 
     return H * bMiddle * rB04 * rB04 * Math.sqrt(8 * pi * kB * TEMPERATURE / mH) * e ** (-EaMiddle / (R * TEMPERATURE)) 
 }
 
 function zEnd(links) {
-    let bEnd = ((links.length < 2) ? links[0] : (links[0] + last(links))) * lignimConcentration(links);
+    let bEnd = ((links.length < 2) ? links[0] : (links[0] + last(links))) * ligninConcentration();
 
     return H * bEnd * rB04 * rB04 * Math.sqrt(8 * pi * kB * TEMPERATURE / mH) * e ** (-EaEnd / (R * TEMPERATURE))
 }
 
 function zOther(links) {
     let other = 0;
-    links.slice(1, -1).forEach((v) => other += !v);
-    other *= lignimConcentration(links)
+    links.forEach((v) => other += !v);
+    other *= ligninConcentration();
 
-    return H * other * rOther * rOther * Math.sqrt(8 * pi * kB * TEMPERATURE / mH)
+    return H * other * rOther * rOther * Math.sqrt(8 * pi * kB * TEMPERATURE / mH);
 }
 
 function chooseLinkType(links) {
@@ -89,7 +89,7 @@ function chooseLinkType(links) {
     return p[0];
 }
 
-// Computes Time and singleton
+// Computes collisionNb and singleton
 function analyse(links) {
     let linksString = linksToString(links);
 
@@ -99,24 +99,24 @@ function analyse(links) {
     }
 
     if (links.length == 0) {
-        return { time: 0, nbSingle: 1 };
+        return { collisionNb: 0, nbSingle: 1 };
     }
 
     if (links.reduce((x, y) => x + y) == 0) {
-        return { time: 0, nbSingle: 0 };
+        return { collisionNb: 0, nbSingle: 0 };
     }
 
-    let meanTime = 0;
+    let meanCollisionNb = 0;
     let meanSingleton = 0;
     let nbRepeat = REPEAT;
     for (let _ = 0; _ < nbRepeat; _++) {
         let breakType = chooseLinkType(links);
-        let time = 0;
+        let collisionNb = 0;
         let singleton = 0;
         let s = 0;
 
         while (breakType == "OTHER" && s < SECURITY) {
-            time++;
+            collisionNb++;
             breakType = chooseLinkType(links);
             s++;
         }
@@ -149,18 +149,20 @@ function analyse(links) {
         let temp1 = analyse(links.slice(0, breakIndex));
         let temp2 = analyse(links.slice(breakIndex + 1));
         
-        time += 1 + temp1.time + temp2.time;
+        collisionNb += 1 + temp1.collisionNb + temp2.collisionNb;
         singleton += temp1.nbSingle + temp2.nbSingle;
 
-        meanTime += time;
+        meanCollisionNb += collisionNb;
         meanSingleton += singleton;
     }
 
-    meanTime /= nbRepeat;
+    meanCollisionNb /= nbRepeat;
     meanSingleton /= nbRepeat;
 
+    meanSingleton = meanSingleton * LIGNIN_MASS / LENGTH_LIGNIN_POLY;
+
     let result = {
-        time: meanTime,
+        collisionNb: meanCollisionNb,
         nbSingle: meanSingleton
     }
     // Save the result for this link
@@ -179,7 +181,7 @@ function testAll(n) {
     let links = [];// One chain to analyse
 
     // Initialize results
-    loggerInfo.set(n, { meanTime: 0, meanNbSingle: 0, details: []});
+    loggerInfo.set(n, { meancollisionNb: 0, meanNbSingle: 0, details: []});
 
     // Initialize index
     for (let i = 0; i < n; i++) {
@@ -187,23 +189,23 @@ function testAll(n) {
     }
 
     // Initialize links, no breakable link at the beginning
-    for(let i = 0; i < LENGTH_LIGNIM_POLY; i++) {
+    for(let i = 0; i < LENGTH_LIGNIN_POLY; i++) {
         links.push(false);
     }
 
-    // Compute time and singleton for all possible links
+    // Compute collisionNb and singleton for all possible links
     while(!stop) {
         try {
-            if(last(index) < LENGTH_LIGNIM_POLY) {
+            if(last(index) < LENGTH_LIGNIN_POLY) {
                 // Set breakable links
                 for(let i = 0; i < links.length; i++) {
                     links[i] = (index.includes(i)) ? true : false;
                 }
                 let analysis = analyse(links);
                 
-                loggerInfo.get(n).meanTime += analysis.time;
+                loggerInfo.get(n).meancollisionNb += analysis.collisionNb;
                 loggerInfo.get(n).meanNbSingle += analysis.nbSingle;
-                loggerInfo.get(n).details.push({ array: links.slice(), time: analysis.time, nbSingle: analysis.nbSingle})
+                loggerInfo.get(n).details.push({ array: links.slice(), collisionNb: analysis.collisionNb, nbSingle: analysis.nbSingle})
             }   
             index = nextIndex(index); // Can throw the error NO_MORE
         } catch(err) {
@@ -211,7 +213,7 @@ function testAll(n) {
             stop = true;
         }
     }
-    loggerInfo.get(n).meanTime /= loggerInfo.get(n).details.length;
+    loggerInfo.get(n).meancollisionNb /= loggerInfo.get(n).details.length;
     loggerInfo.get(n).meanNbSingle /= loggerInfo.get(n).details.length;
 }
 
@@ -220,7 +222,7 @@ function nextIndex(index) {
     if(index.length === 0) {
         throw "NO_MORE";
     }
-    if (last(index) + 1 >= LENGTH_LIGNIM_POLY) {
+    if (last(index) + 1 >= LENGTH_LIGNIN_POLY) {
         let temp = nextIndex(index.slice(0, -1));
         temp.push(last(temp) + 1);
         return temp;
@@ -231,18 +233,20 @@ function nextIndex(index) {
 }
 
 function start() {
-    LENGTH_LIGNIM_POLY = parseInt(document.getElementById("nb-of-link").value);
+    LENGTH_LIGNIN_POLY = parseInt(document.getElementById("nb-of-link").value);
     MIN_BREAKABLE_LINK = parseInt(document.getElementById("nb-breakable").value);
     MAX_BREAKABLE_LINK = parseInt(document.getElementById("nb-breakable").value);
 
     TEMPERATURE = parseFloat(document.getElementById("temperature").value);
-    LIGNIM_MASS = parseFloat(document.getElementById("lignim-mass").value);
-    SYRINGAL_FRACTION = parseFloat(document.getElementById("syringal-fraction").value);
+    LIGNIN_MASS = parseFloat(document.getElementById("lignin-mass").value);
+    SYRINGOL_FRACTION = parseFloat(document.getElementById("syringal-fraction").value);
     SALIENT_VOLUME = parseFloat(document.getElementById("salient-volume").value);
     REPEAT = parseFloat(document.getElementById("repeat").value);
 
+    SECURITY = parseFloat(document.getElementById("security").value);
+
     linkToAnalysis = new Map();
-    linkToAnalysis.set([].toString(), {time: 0, nbSingle: 1});
+    linkToAnalysis.set([].toString(), {collisionNb: 0, nbSingle: 1});
 
     loggerInfo = new Map();
 
@@ -259,10 +263,10 @@ function start() {
 }
 
 function logResults() {
-    let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Mean time</th><th>Mean nb singleton</th><th>Mean Time/ Mean nb singleton</th></tr>"
+    let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Collision Number</th><th>Singleton Yield</th><th>Collision Number/ Singleton Yield</th></tr>"
     let detailTables = "";
     loggerInfo.forEach((v, k, m) => {
-        meanTable += `<tr><td>${k}</td><td>${v.meanTime.toFixed(3)}</td><td>${v.meanNbSingle.toFixed(3)}</td><td>${(v.meanTime.toFixed(3) / v.meanNbSingle.toFixed(3)).toFixed(3)}</td></tr>`;
+        meanTable += `<tr><td>${k}</td><td>${v.meancollisionNb.toFixed(3)}</td><td>${v.meanNbSingle.toFixed(3)}</td><td>${(v.meancollisionNb.toFixed(3) / v.meanNbSingle.toFixed(3)).toFixed(3)}</td></tr>`;
         detailTables += logDetailTable(k, v.details);
     });
     meanTable += "</table>";
@@ -270,9 +274,9 @@ function logResults() {
 }
 
 function logDetailTable(n, details) {
-    let table = `<table><tr><th>Links with ${n} breakable links</th><th>Time</th><th>Nb Singleton</th></tr>`;
+    let table = `<table><tr><th>Links with ${n} breakable links</th><th>Collision Number</th><th>Singleton Yield</th></tr>`;
     details.forEach((v) => {
-        table += `<tr><td>${linksToString(v.array)}</td><td>${v.time}</td><td>${v.nbSingle}</td></tr>`;
+        table += `<tr><td>${linksToString(v.array)}</td><td>${v.collisionNb}</td><td>${v.nbSingle}</td></tr>`;
     });
     table += "</table>";
     return table;
@@ -297,14 +301,14 @@ function exportCSV() {
     });
 
     loggerInfo.forEach((v, k, m) => {
-        csv += `Links,Time,Nb Singleton`;
+        csv += `Links,Collision Number,Singleton Yield`;
         csv += (k == MAX_BREAKABLE_LINK) ? "\n" : ",";
     });
 
     for (let i = 0; i < maxLength; i++) {
         loggerInfo.forEach((v, k, m) => {
             if(v.details.length > i) {
-                csv += `${linksToString(v.details[i].array)},${v.details[i].time},${v.details[i].nbSingle}`
+                csv += `${linksToString(v.details[i].array)},${v.details[i].collisionNb},${v.details[i].nbSingle}`
             } else {
                 csv += ",";
             }
