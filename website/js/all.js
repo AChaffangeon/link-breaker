@@ -21,8 +21,8 @@ let kB = 1.38 * Math.pow(10, -23);
 let mS = 222;
 let mG = 196;
 let H = Math.pow(9.10, 20);
-let EaMiddle = 30000;
-let EaEnd = 20000;
+let EaMiddle = 32000;
+let EaEnd = 10100;
 let e = Math.exp(1);
 
 // Optimisation to compute collisionNb
@@ -64,6 +64,7 @@ function zOther(links) {
 }
 
 function chooseLinkType(links) {
+    let size = 10000;
     let pE = zEnd(links);
     let pO = zOther(links);
     let pM = zMiddle(links);
@@ -74,19 +75,19 @@ function chooseLinkType(links) {
     pM /= tot;
 
     let p = [];
-    for (let i = 0; i < Math.floor(pE * 1000); i++) {
+    for (let i = 0; i < Math.floor(pE * size); i++) {
         p.push("END");
     }
-    for (let i = 0; i < Math.floor(pO * 1000); i++) {
+    for (let i = 0; i < Math.floor(pO * size); i++) {
         p.push("OTHER");
     }
-    for (let i = 0; i < Math.floor(pM * 1000); i++) {
+    for (let i = 0; i < Math.floor(pM * size); i++) {
         p.push("MIDDLE");
     }
 
-    p.sort(() => Math.random() - 0.5);
-    //console.log(linksToString(links),  "End", pE, "Middle", pM, "Other", pO);
-    return p[0];
+    //p.sort(() => Math.random() - 0.5);
+    //console.log(linksToString(links), "End", Math.floor(pE * size), "Middle", Math.floor(pM * size), "Other", Math.floor(pO * size));
+    return p;
 }
 
 // Computes collisionNb and singleton
@@ -109,15 +110,19 @@ function analyse(links) {
     let meanCollisionNb = 0;
     let meanSingleton = 0;
     let nbRepeat = REPEAT;
+    let probabilities = chooseLinkType(links);
+
     for (let _ = 0; _ < nbRepeat; _++) {
-        let breakType = chooseLinkType(links);
+        let i = Math.floor(Math.random() * probabilities.length);
+        let breakType = probabilities[i];
         let collisionNb = 0;
         let singleton = 0;
         let s = 0;
 
         while (breakType == "OTHER" && s < SECURITY) {
             collisionNb++;
-            breakType = chooseLinkType(links);
+            i = Math.floor(Math.random() * probabilities.length);
+            breakType = probabilities[i];
             s++;
         }
 
@@ -246,7 +251,6 @@ function start() {
     SECURITY = parseFloat(document.getElementById("security").value);
 
     linkToAnalysis = new Map();
-    linkToAnalysis.set([].toString(), {collisionNb: 0, nbSingle: 1});
 
     loggerInfo = new Map();
 
@@ -266,7 +270,7 @@ function logResults() {
     let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Collision Number</th><th>Singleton Yield</th><th>Collision Number/ Singleton Yield</th></tr>"
     let detailTables = "";
     loggerInfo.forEach((v, k, m) => {
-        meanTable += `<tr><td>${k}</td><td>${v.meancollisionNb.toFixed(3)}</td><td>${v.meanNbSingle.toFixed(3)}</td><td>${(v.meancollisionNb.toFixed(3) / v.meanNbSingle.toFixed(3)).toFixed(3)}</td></tr>`;
+        meanTable += `<tr><td>${k}</td><td>${v.meancollisionNb}</td><td>${v.meanNbSingle}</td><td>${(v.meancollisionNb / v.meanNbSingle).toFixed(3)}</td></tr>`;
         detailTables += logDetailTable(k, v.details);
     });
     meanTable += "</table>";
