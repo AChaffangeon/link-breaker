@@ -196,10 +196,10 @@ function testAll(n) {
 
                 loggerInfo.get(n).details.push({ array: links.slice(),
                     collisionNb: analysis.collisionNb,
-                    monomereNb: analysis.monomereNb,
-                    dimereNb: analysis.dimereNb,
-                    trimereNb: analysis.trimereNb,
-                    oligoNb: analysis.oligoNb });
+                    monomereNb: analysis.monomereNb * 100/(n + 1),
+                    dimereNb: analysis.dimereNb * 100/(n + 1),
+                    trimereNb: analysis.trimereNb * 100/(n + 1),
+                    oligoNb: analysis.oligoNb * 100/(n + 1) });
             }
             index = nextIndex(index); // Can throw the error NO_MORE
         } catch(err) {
@@ -212,6 +212,11 @@ function testAll(n) {
     loggerInfo.get(n).meanDimereNb /= loggerInfo.get(n).details.length;
     loggerInfo.get(n).meanTrimereNb /= loggerInfo.get(n).details.length;
     loggerInfo.get(n).meanOligoNb /= loggerInfo.get(n).details.length;
+
+    loggerInfo.get(n).meanMonomereNb *= 100/(n + 1);
+    loggerInfo.get(n).meanDimereNb *= 100/(n + 1);
+    loggerInfo.get(n).meanTrimereNb *= 100/(n + 1);
+    loggerInfo.get(n).meanOligoNb *= 100/(n + 1);
 }
 
 // Compute the index of the next breakable link
@@ -257,7 +262,7 @@ function start() {
 }
 
 function logResults() {
-    let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Collision Number</th><th>Monomere Yield</th><th>Dimere Yield</th><th>Trimere Yield</th><th>Oligo Yield</th></tr>"
+    let meanTable = "<table><tr><th>Number of Breakable Link</th><th>Collision Number</th><th>Monomere Yield (%)</th><th>Dimere Yield (%)</th><th>Trimere Yield (%)</th><th>Oligo Yield (%)</th></tr>"
     let detailTables = "";
     loggerInfo.forEach((v, k, m) => {
         meanTable += `<tr><td>${k}</td><td>${v.meanCollisionNb.toFixed(3)}</td><td>${v.meanMonomereNb.toFixed(3)}</td><td>${(v.meanDimereNb).toFixed(3)}</td><td>${(v.meanTrimereNb).toFixed(3)}</td><td>${(v.meanOligoNb).toFixed(3)}</td></tr>`;
@@ -268,7 +273,7 @@ function logResults() {
 }
 
 function logDetailTable(n, details) {
-    let table = `<table><tr><th>Links with ${n} breakable links</th><th>Collision Number</th><th>Monomere Yield</th><th>Dimere Yield</th><th>Trimere Yield</th><th>Oligo Yield</th></tr>`;
+    let table = `<table><tr><th>Links with ${n} breakable links</th><th>Collision Number</th><th>Monomere Yield (%)</th><th>Dimere Yield (%)</th><th>Trimere Yield (%)</th><th>Oligo Yield (%)</th></tr>`;
     details.forEach((v) => {
         table += `<tr><td>${linksToString(v.array)}</td><td>${v.collisionNb}</td><td>${v.monomereNb}</td><td>${v.dimereNb}</td><td>${v.trimereNb}</td><td>${v.oligoNb}</td></tr>`;
     });
